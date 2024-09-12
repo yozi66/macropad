@@ -68,7 +68,12 @@ while True:
             if key_event.key_number == 8:
                 macropad.keyboard.send(macropad.Keycode.THREE)
             if key_event.key_number == 9:
-                macropad.keyboard.send(macropad.Keycode.GRAVE_ACCENT) # ZERO in HU keyboard
+                if mode == VOLUME:
+                    macropad.consumer_control.send(
+                        macropad.ConsumerControlCode.PLAY_PAUSE
+                    )
+                else:
+                    macropad.keyboard.send(macropad.Keycode.GRAVE_ACCENT) # ZERO in HU keyboard
             if key_event.key_number == 10:
                 macropad.keyboard.send(macropad.Keycode.ENTER)
             if key_event.key_number == 11:
