@@ -14,8 +14,9 @@ macropad = MacroPad()
 
 BRITE = "BRITE"
 VOLUME = "VOLUME"
-modes = [BRITE, VOLUME]
-colors = [(255,255,255), (255,255,0)]
+OFF = "OFF"
+modes = [BRITE, VOLUME, OFF]
+colors = [(255,255,255), (255,255,0), (0,0,0)]
 mode_index = 0
 mode = modes[mode_index]
 
@@ -29,10 +30,15 @@ pixels.brightness = brite[brite_index]
 text_lines = macropad.display_text()
 
 def display():
-    space = "        "
-    text_lines[1].text = space + mode
-    text_lines[3].text = space + "pos: " + str(last_position)
-    text_lines[4].text = space + "brt: " + str(brite_index)
+    if mode == OFF:
+        text_lines[1].text = ""
+        text_lines[3].text = ""
+        text_lines[4].text = ""
+    else:
+        space = "        "
+        text_lines[1].text = space + mode
+        text_lines[3].text = space + "pos: " + str(last_position)
+        text_lines[4].text = space + "brt: " + str(brite_index)
     text_lines.show()
     pixels.fill(colors[mode_index])
 
@@ -41,7 +47,7 @@ display()
 while True:
     key_event = macropad.keys.events.get()
 
-    if key_event:
+    if key_event and mode != OFF:
         if key_event.pressed:
             if key_event.key_number == 0:
                 macropad.keyboard.send(macropad.Keycode.SEVEN)
@@ -90,7 +96,7 @@ while True:
                 macropad.consumer_control.send(
                     macropad.ConsumerControlCode.VOLUME_DECREMENT
                 )
-                
+
         if mode == BRITE:
             brite_index += delta
             if brite_index < 0:
@@ -100,13 +106,3 @@ while True:
             pixels.brightness = brite[brite_index]
 
         display()
-
-    """
-    if macropad.encoder > last_position:
-        macropad.mouse.move(x=+5)
-        last_position = current_position
-
-    if macropad.encoder < last_position:
-        macropad.mouse.move(x=-5)
-        last_position = current_position
-    """
