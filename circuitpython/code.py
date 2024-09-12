@@ -34,12 +34,14 @@ def display():
         text_lines[1].text = ""
         text_lines[3].text = ""
         text_lines[4].text = ""
+        macropad.display_sleep = True
     else:
+        macropad.display_sleep = False
         space = "        "
         text_lines[1].text = space + mode
         text_lines[3].text = space + "pos: " + str(last_position)
         text_lines[4].text = space + "brt: " + str(brite_index)
-    text_lines.show()
+        text_lines.show()
     pixels.fill(colors[mode_index])
 
 display()
