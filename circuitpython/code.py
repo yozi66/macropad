@@ -38,10 +38,17 @@ def display():
     else:
         macropad.display_sleep = False
         space = "        "
+        text_lines[0].text = "   Timers + Volume"
+        text_lines[1].text = "<15:00><20:00><25:00>"
+        text_lines[2].text = " <4:00> <5:00><10:00>"
+        text_lines[3].text = " <1:00> <2:00> <3:00>"
+        text_lines[4].text = " brt: " + str(brite_index) + "    pos: " + str(last_position) 
+        """
         text_lines[1].text = space + mode
         text_lines[2].text = space + "pos: " + str(last_position)
         text_lines[3].text = space + "brt: " + str(brite_index)
         text_lines[4].text = space + "blu: " + str(blue)
+        """
         text_lines.show()
     pixels.fill(colors[mode_index])
 
