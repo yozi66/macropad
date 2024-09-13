@@ -13,17 +13,20 @@ from adafruit_macropad import MacroPad
 macropad = MacroPad()
 
 BRITE = "BRITE"
+COLOR = "COLOR"
 VOLUME = "VOLUME"
 OFF = "OFF"
-modes = [BRITE, VOLUME, OFF]
-colors = [(255,255,255), (255,255,0), (0,0,0)]
+modes = [BRITE, VOLUME, COLOR, OFF]
+blue = 128
+colors = [(255,255,blue), (255,255,0), (255,255,blue), (0,0,0)]
 mode_index = 0
 mode = modes[mode_index]
 
 last_position = 0
 
+
 brite = [0.0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0]
-brite_index = 1;
+brite_index = 2;
 pixels = macropad.pixels
 pixels.brightness = brite[brite_index]
 
@@ -31,16 +34,14 @@ text_lines = macropad.display_text()
 
 def display():
     if mode == OFF:
-        text_lines[1].text = ""
-        text_lines[3].text = ""
-        text_lines[4].text = ""
         macropad.display_sleep = True
     else:
         macropad.display_sleep = False
         space = "        "
         text_lines[1].text = space + mode
-        text_lines[3].text = space + "pos: " + str(last_position)
-        text_lines[4].text = space + "brt: " + str(brite_index)
+        text_lines[2].text = space + "pos: " + str(last_position)
+        text_lines[3].text = space + "brt: " + str(brite_index)
+        text_lines[4].text = space + "blu: " + str(blue)
         text_lines.show()
     pixels.fill(colors[mode_index])
 
@@ -94,6 +95,17 @@ while True:
     if current_position != last_position:
         delta = current_position - last_position
         last_position = current_position
+
+        if mode == COLOR:
+            blue += delta
+            if (blue < 0):
+                blue = 0
+            elif (blue > 255):
+                blue = 255
+            color = (255,255, blue)
+            colors[0] = color
+            colors[mode_index] = color
+
         if mode == VOLUME:
             if delta > 0:
                 macropad.consumer_control.send(
@@ -113,3 +125,4 @@ while True:
             pixels.brightness = brite[brite_index]
 
         display()
+
