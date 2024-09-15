@@ -21,7 +21,11 @@ class Context:
         if (layerIndex >= len(self.layers)):
             layerIndex = 0
         self.layerIndex = layerIndex
+        self.activate()
         print("switched to ", self.layerName())
+
+    def activate(self):
+        self.layers[self.layerIndex].activate()
 
     def keyEvent(self, key_event):
         layer = self.layers[self.layerIndex]
@@ -33,3 +37,10 @@ class Context:
 
     def layerName(self):
         return self.layers[self.layerIndex].name()
+
+    def tick(self, ms):
+        result = False
+        for layer in self.layers:
+            if layer.tick(ms):
+                result = True
+        return result

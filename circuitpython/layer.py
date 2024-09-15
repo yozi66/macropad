@@ -11,3 +11,9 @@ class Layer:
 
     def rotated(self, delta):
         pass
+
+    def tick(self, ms):
+        return False
+
+    def activate(self):
+        pass

@@ -1,3 +1,4 @@
+import supervisor
 from adafruit_macropad import MacroPad
 from layer   import Layer
 from context import Context
@@ -13,6 +14,7 @@ context.layers = [
     timer, numpad, Off(context)
 ]
 
+context.activate()
 context.display()
 
 # prepare for rotary encoder delta
@@ -34,4 +36,7 @@ while True:
         delta = current_position - last_position
         last_position = current_position
         context.rotated(delta)
+        context.display()
+
+    if context.tick(supervisor.ticks_ms()):
         context.display()
