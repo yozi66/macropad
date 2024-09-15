@@ -35,7 +35,9 @@ class Timer(Layer):
             macropad.consumer_control.send(
                 macropad.ConsumerControlCode.PLAY_PAUSE
             )
-
+        if key_event.pressed and key_event.key_number == 11:
+            macropad.keyboard.press(macropad.Keycode.WINDOWS, macropad.Keycode.L)
+            macropad.keyboard.release_all()
     def name(self):
         return " TIMER "
 
@@ -65,8 +67,8 @@ class Timer(Layer):
     def display(self):
         self.context.macropad.display_sleep = False
         text_group = self.text_group
-        text_group[1].text = " 60:00  30:00   3:00"
-        text_group[2].text = " MUSIC  RESET   MUTE"
+        text_group[1].text = "  4:00  12:30 [25:00]"
+        text_group[2].text = " MUSIC  START   LOCK"
         board.DISPLAY.root_group = text_group
         self.context.pixels.fill(self.color)
 
