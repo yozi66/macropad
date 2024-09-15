@@ -1,8 +1,33 @@
+import board
+import displayio
+import terminalio
+from adafruit_display_text import bitmap_label as label
 from layer import Layer
 
 class Timer(Layer):
+    WHITE = (255, 255, 255)
+    BLACK = (0, 0, 0)
     def __init__(self, context):
         Layer.__init__(self, context, (40, 20, 0))
+        text_group = displayio.Group()
+        font = terminalio.FONT
+        big_label = label.Label(
+            font,
+            text = "25:00",
+            scale = 3,
+            anchor_point = (0,0),
+            anchored_position = (20,0)
+        )
+        text_group.append(big_label)
+        for i in range(2):
+            line = label.Label(
+                font,
+                text = " ",
+                anchor_point = (0,0),
+                anchored_position = (0, 36 + 12 * i)
+            )
+            text_group.append(line)
+        self.text_group = text_group
 
     def keyEvent(self, key_event):
         macropad = self.context.macropad
@@ -39,12 +64,9 @@ class Timer(Layer):
 
     def display(self):
         self.context.macropad.display_sleep = False
-        text_lines = self.context.text_lines
-        text_lines[0].text = "       TIMERS  volume"
-        text_lines[1].text = " 15:00  20:00  25:00"
-        text_lines[2].text = "  4:00   5:00  10:00"
-        text_lines[3].text = " 60:00  30:00   3:00"
-        text_lines[4].text = " MUSIC  RESET   MUTE"
-        text_lines.show()
+        text_group = self.text_group
+        text_group[1].text = " 60:00  30:00   3:00"
+        text_group[2].text = " MUSIC  RESET   MUTE"
+        board.DISPLAY.root_group = text_group
         self.context.pixels.fill(self.color)
 
