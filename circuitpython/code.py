@@ -1,6 +1,6 @@
 from adafruit_macropad import MacroPad
 from layer   import Layer
-from context import Context, ContextSwitch
+from context import Context
 from timer   import Timer
 from numpad  import Numpad
 from off     import Off
@@ -8,13 +8,9 @@ from color   import Color
 
 macropad = MacroPad()
 context = Context(macropad)
-switch = context.switch
 timer = Timer(context)
 numpad = Numpad(context)
 context.layers = [
-    Color(switch, 0), Color(switch, 1), Color(switch, 2),
-    Color(numpad, 0), Color(numpad, 1), Color(numpad, 2),
-    Color(timer, 0),  Color(timer, 1),  Color(timer, 2),
     timer, numpad, Off(context)
 ]
 
