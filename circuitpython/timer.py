@@ -32,9 +32,10 @@ class Timer(Layer):
             text_group.append(line)
         self.text_group = text_group
         self.running = False
-        self.expired = False
         self.remaining_millis = 25*60*1000
+        self.last_remaining = self.remaining_millis
         self.last_tick = supervisor.ticks_ms()
+        self.mute = False
 
     def activate(self):
         self.text_group[1].text = "  3:00  12:30  25:00"
@@ -63,16 +64,17 @@ class Timer(Layer):
                     self.remaining_millis = (12*60+30)*1000
                 if key_event.key_number == 8:
                     self.remaining_millis = 25*60*1000
+            else:
+                if key_event.key_number == 5:
+                    self.mute = not self.mute
             if key_event.key_number == 9:
                 macropad.consumer_control.send(
                     macropad.ConsumerControlCode.PLAY_PAUSE
                 )
             if key_event.key_number == 10:
-                if self.running:
-                    self.running = False
-                    self.expired = False
-                else:
-                    self.running = True
+                self.running = not self.running
+                if not self.running:
+                    self.mute = False
             if key_event.key_number == 11:
                 macropad.keyboard.press(macropad.Keycode.WINDOWS, macropad.Keycode.L)
                 macropad.keyboard.release_all()
@@ -122,23 +124,48 @@ class Timer(Layer):
         text_group[0].text = "%s%2d:%02d" % (prefix, minutes, seconds)
         self.context.pixels.fill(self.color)
         if self.running:
-            color = self.red
-            if self.remaining_millis > 0:
-                color = self.green
-            # self.context.pixels[8] = color
+            color = self.green
+            if self.remaining_millis < 500:
+                color = self.red
             for i in range(9):
                 self.context.pixels[i] = color
+            self.context.pixels[10] = color
+            if self.mute:
+                color2 = self.color
+                if color == self.red:
+                    color2 = self.green
+                self.context.pixels[5] = color2
 
     def seconds(self):
-        return (self.remaining_millis + 999) // 1000 # round up
+        return (self.remaining_millis) // 1000
 
     def tick(self, ms):
         result = False
+        tone = False
         if self.running:
             old_seconds = self.seconds()
             delta = ms - self.last_tick
             self.remaining_millis -= delta
-            if self.seconds() != old_seconds:
+            seconds = self.seconds()
+            if seconds != old_seconds:
                 result = True # ask for display refresh
+            # beep at 0, -60, -120, etc seconds for 3 x 100 ms with 100 ms break
+            if seconds <= 0:
+                if (-seconds % 60 == 0):
+                    slice = (-self.remaining_millis % 1000) // 100
+                    tone = slice in (0, 2, 4)
+            # beep every 15 minutes if muted
+            if (self.mute and -seconds % 900 != 0):
+                tone = False
+        if tone:
+            self.context.macropad.start_tone(2000)
+        else:
+            self.context.macropad.stop_tone()
+
+        # pixel color change at 500 ms
+        if self.last_remaining >= 500 and self.remaining_millis < 500:
+            result = True
+        self.last_remaining = self.remaining_millis
+
         self.last_tick = ms
         return result
