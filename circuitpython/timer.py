@@ -16,10 +16,10 @@ class Timer(Layer):
         font = terminalio.FONT
         big_label = label.Label(
             font,
-            text = "25:00",
+            text = "-nn:nn",
             scale = 3,
             anchor_point = (0,0),
-            anchored_position = (20,0)
+            anchored_position = (2,0)
         )
         text_group.append(big_label)
         for i in range(2):
@@ -31,20 +31,52 @@ class Timer(Layer):
             )
             text_group.append(line)
         self.text_group = text_group
-        self.running = True
+        self.running = False
         self.expired = False
-        self.remaining_millis = 10*1000
+        self.remaining_millis = 25*60*1000
         self.last_tick = supervisor.ticks_ms()
 
+    def activate(self):
+        self.text_group[1].text = "  3:00  12:30  25:00"
+        self.text_group[2].text = " MUSIC  TIMER   LOCK"
+        board.DISPLAY.root_group = self.text_group
+
     def keyEvent(self, key_event):
-        macropad = self.context.macropad
-        if key_event.pressed and key_event.key_number == 9:
-            macropad.consumer_control.send(
-                macropad.ConsumerControlCode.PLAY_PAUSE
-            )
-        if key_event.pressed and key_event.key_number == 11:
-            macropad.keyboard.press(macropad.Keycode.WINDOWS, macropad.Keycode.L)
-            macropad.keyboard.release_all()
+        if key_event.pressed:
+            macropad = self.context.macropad
+            if not self.running:
+                if key_event.key_number == 0:
+                    self.remaining_millis = 5*60*1000
+                if key_event.key_number == 1:
+                    self.remaining_millis = 10*60*1000
+                if key_event.key_number == 2:
+                    self.remaining_millis = 50*60*1000
+                if key_event.key_number == 3:
+                    self.remaining_millis = 4*60*1000
+                if key_event.key_number == 4:
+                    self.remaining_millis = 15*60*1000
+                if key_event.key_number == 5:
+                    self.remaining_millis = 10*1000
+                if key_event.key_number == 6:
+                    self.remaining_millis = 3*60*1000
+                if key_event.key_number == 7:
+                    self.remaining_millis = (12*60+30)*1000
+                if key_event.key_number == 8:
+                    self.remaining_millis = 25*60*1000
+            if key_event.key_number == 9:
+                macropad.consumer_control.send(
+                    macropad.ConsumerControlCode.PLAY_PAUSE
+                )
+            if key_event.key_number == 10:
+                if self.running:
+                    self.running = False
+                    self.expired = False
+                else:
+                    self.running = True
+            if key_event.key_number == 11:
+                macropad.keyboard.press(macropad.Keycode.WINDOWS, macropad.Keycode.L)
+                macropad.keyboard.release_all()
+
     def name(self):
         return " TIMER "
 
@@ -71,11 +103,6 @@ class Timer(Layer):
             )
             delta += 1
 
-    def activate(self):
-        self.text_group[1].text = "  4:00  12:30 [25:00]"
-        self.text_group[2].text = " MUSIC  START   LOCK"
-        board.DISPLAY.root_group = self.text_group
-
     def display(self):
         self.context.macropad.display_sleep = False
         text_group = self.text_group
@@ -84,13 +111,15 @@ class Timer(Layer):
         minutes = 0
         minutes = full_seconds // 60
         seconds = full_seconds % 60
+        prefix = " "
         if negative:
+            prefix = "-"
             minutes = -1 - minutes
             seconds = 60 - seconds
             if (seconds == 60):
                 seconds = 0
                 minutes += 1
-        text_group[0].text = "%02d:%02d" % (minutes, seconds)
+        text_group[0].text = "%s%2d:%02d" % (prefix, minutes, seconds)
         self.context.pixels.fill(self.color)
         if self.running:
             color = self.red
@@ -110,6 +139,6 @@ class Timer(Layer):
             delta = ms - self.last_tick
             self.remaining_millis -= delta
             if self.seconds() != old_seconds:
-                result = True
+                result = True # ask for display refresh
         self.last_tick = ms
         return result
