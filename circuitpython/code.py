@@ -4,7 +4,6 @@ from context import Context
 from timer   import Timer
 from numpad  import Numpad
 from off     import Off
-from color   import Color
 
 macropad = MacroPad()
 context = Context(macropad)
