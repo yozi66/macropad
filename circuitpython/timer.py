@@ -88,21 +88,17 @@ class Timer(Layer):
     def rotated(self, delta):
         macropad = self.context.macropad
         while(delta > 0):
-            macropad.consumer_control.send(
-                macropad.ConsumerControlCode.VOLUME_INCREMENT
-            )
-            macropad.consumer_control.send(
-                macropad.ConsumerControlCode.VOLUME_INCREMENT
-            )
+            for i in range(3):
+                macropad.consumer_control.send(
+                    macropad.ConsumerControlCode.VOLUME_INCREMENT
+                )
             delta -= 1
 
         while(delta < 0):
-            macropad.consumer_control.send(
-                macropad.ConsumerControlCode.VOLUME_DECREMENT
-            )
-            macropad.consumer_control.send(
-                macropad.ConsumerControlCode.VOLUME_DECREMENT
-            )
+            for i in range(3):
+                macropad.consumer_control.send(
+                    macropad.ConsumerControlCode.VOLUME_DECREMENT
+                )
             delta += 1
 
     def display(self):
