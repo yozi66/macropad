@@ -8,10 +8,19 @@ from layer import Layer
 class Timer(Layer):
     WHITE = (255, 255, 255)
     BLACK = (0, 0, 0)
+
     def __init__(self, context):
         Layer.__init__(self, context, (40, 20, 0))
+        self.debug = False
         self.red = (60, 0, 0)
         self.green = (0, 40, 0)
+        self.blue = (0, 0, 60)
+        self.keys = (
+            15, 20, 25,
+             4,  5, 10,
+             1,  2,  3
+        )
+        self.help = "1-4-15 2-5-20 3-10-25"
         text_group = displayio.Group()
         font = terminalio.FONT
         big_label = label.Label(
@@ -33,49 +42,37 @@ class Timer(Layer):
         self.text_group = text_group
         self.running = False
         self.remaining_millis = 25*60*1000
+        if self.debug:
+            self.remaining_millis = 10*1000
+        self.alarm_repeat = 60
         self.last_remaining = self.remaining_millis
         self.last_tick = supervisor.ticks_ms()
-        self.mute = False
 
     def activate(self):
-        self.text_group[1].text = "  3:00  12:30  25:00"
+        self.text_group[1].text = self.help
         self.text_group[2].text = " MUSIC  TIMER   LOCK"
         board.DISPLAY.root_group = self.text_group
 
     def keyEvent(self, key_event):
         if key_event.pressed:
             macropad = self.context.macropad
-            if not self.running:
-                if key_event.key_number == 0:
-                    self.remaining_millis = 5*60*1000
-                if key_event.key_number == 1:
-                    self.remaining_millis = 10*60*1000
-                if key_event.key_number == 2:
-                    self.remaining_millis = 50*60*1000
-                if key_event.key_number == 3:
-                    self.remaining_millis = 4*60*1000
-                if key_event.key_number == 4:
-                    self.remaining_millis = 15*60*1000
-                if key_event.key_number == 5:
-                    self.remaining_millis = 10*1000
-                if key_event.key_number == 6:
-                    self.remaining_millis = 3*60*1000
-                if key_event.key_number == 7:
-                    self.remaining_millis = (12*60+30)*1000
-                if key_event.key_number == 8:
-                    self.remaining_millis = 25*60*1000
-            else:
-                if key_event.key_number == 5:
-                    self.mute = not self.mute
-            if key_event.key_number == 9:
+            key_number = key_event.key_number
+            if key_number < len(self.keys):
+                seconds = self.keys[key_number] * 60
+                if self.running:
+                    print("alarm repeat", seconds)
+                    self.alarm_repeat = seconds
+                else:
+                    self.remaining_millis = seconds * 1000
+            elif key_event.key_number == 9:
                 macropad.consumer_control.send(
                     macropad.ConsumerControlCode.PLAY_PAUSE
                 )
-            if key_event.key_number == 10:
+            elif key_event.key_number == 10:
                 self.running = not self.running
                 if not self.running:
-                    self.mute = False
-            if key_event.key_number == 11:
+                    self.alarm_repeat = 60
+            elif key_event.key_number == 11:
                 macropad.keyboard.press(macropad.Keycode.WINDOWS, macropad.Keycode.L)
                 macropad.keyboard.release_all()
 
@@ -118,19 +115,20 @@ class Timer(Layer):
                 seconds = 0
                 minutes += 1
         text_group[0].text = "%s%2d:%02d" % (prefix, minutes, seconds)
+        colors = [self.color] * 12
         self.context.pixels.fill(self.color)
         if self.running:
             color = self.green
             if self.remaining_millis < 500:
                 color = self.red
             for i in range(9):
-                self.context.pixels[i] = color
-            self.context.pixels[10] = color
-            if self.mute:
-                color2 = self.color
-                if color == self.red:
-                    color2 = self.green
-                self.context.pixels[5] = color2
+                if color == self.red and self.alarm_repeat == self.keys[i] * 60:
+                    colors[i] = self.blue
+                else:
+                    colors[i] = color
+            colors[10] = color
+        for i in range(12):
+            self.context.pixels[i] = colors[i]
 
     def seconds(self):
         return (self.remaining_millis) // 1000
@@ -147,12 +145,9 @@ class Timer(Layer):
                 result = True # ask for display refresh
             # beep at 0, -60, -120, etc seconds for 3 x 100 ms with 100 ms break
             if seconds <= 0:
-                if (-seconds % 60 == 0):
+                if (-seconds % self.alarm_repeat == 0):
                     slice = (-self.remaining_millis % 1000) // 100
                     tone = slice in (0, 2, 4)
-            # beep every 15 minutes if muted
-            if (self.mute and -seconds % 900 != 0):
-                tone = False
         if tone:
             self.context.macropad.start_tone(2000)
         else:
