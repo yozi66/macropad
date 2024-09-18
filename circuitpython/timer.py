@@ -116,7 +116,6 @@ class Timer(Layer):
                 minutes += 1
         text_group[0].text = "%s%2d:%02d" % (prefix, minutes, seconds)
         colors = [self.color] * 12
-        self.context.pixels.fill(self.color)
         if self.running:
             color = self.green
             if self.remaining_millis < 500:
