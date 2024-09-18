@@ -16,9 +16,14 @@ class Timer(Layer):
         self.green = (0, 40, 0)
         self.blue = (0, 0, 60)
         self.keys = (
-            15, 20, 25,
-             4,  5, 10,
-             1,  2,  3
+            900, 1200, 1500,
+            240,  300,  600,
+             60,  120,  180
+        )
+        self.alt_keys = (
+             450,  750, 5400,
+            2400, 3000, 3600,
+              10,   20,   30
         )
         self.help = "1-4-15 2-5-20 3-10-25"
         text_group = displayio.Group()
@@ -58,12 +63,19 @@ class Timer(Layer):
             macropad = self.context.macropad
             key_number = key_event.key_number
             if key_number < len(self.keys):
-                seconds = self.keys[key_number] * 60
+                seconds = self.keys[key_number]
                 if self.running:
-                    print("alarm repeat", seconds)
-                    self.alarm_repeat = seconds
+                    if self.alarm_repeat == seconds:
+                        self.alarm_repeat = self.alt_keys[key_number]
+                    else:
+                        self.alarm_repeat = seconds
+                    print("alarm repeat", self.alarm_repeat)
                 else:
-                    self.remaining_millis = seconds * 1000
+                    millis = seconds * 1000
+                    if self.remaining_millis == millis:
+                        self.remaining_millis = self.alt_keys[key_number] * 1000
+                    else:
+                        self.remaining_millis = millis
             elif key_event.key_number == 9:
                 macropad.consumer_control.send(
                     macropad.ConsumerControlCode.PLAY_PAUSE
@@ -121,10 +133,13 @@ class Timer(Layer):
             if self.remaining_millis < 500:
                 color = self.red
             for i in range(9):
-                if color == self.red and self.alarm_repeat == self.keys[i] * 60:
-                    colors[i] = self.blue
-                else:
-                    colors[i] = color
+                if color == self.red:
+                    if self.alarm_repeat == self.keys[i]:
+                        colors[i] = self.blue
+                    elif self.alarm_repeat == self.alt_keys[i]:
+                        colors[i] = self.green
+                    else:
+                        colors[i] = color
             colors[10] = color
         for i in range(12):
             self.context.pixels[i] = colors[i]
