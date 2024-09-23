@@ -15,6 +15,7 @@ class Timer(Layer):
         self.red = (60, 0, 0)
         self.green = (0, 40, 0)
         self.blue = (0, 0, 60)
+        self.cyan = (0, 30, 40)
         self.keys = (
             900, 1200, 1500,
             240,  300,  600,
@@ -133,13 +134,12 @@ class Timer(Layer):
             if self.remaining_millis < 500:
                 color = self.red
             for i in range(9):
-                if color == self.red:
-                    if self.alarm_repeat == self.keys[i]:
-                        colors[i] = self.blue
-                    elif self.alarm_repeat == self.alt_keys[i]:
-                        colors[i] = self.green
-                    else:
-                        colors[i] = color
+                if self.alarm_repeat == self.keys[i]:
+                    colors[i] = self.blue
+                elif self.alarm_repeat == self.alt_keys[i]:
+                    colors[i] = self.cyan
+                else:
+                    colors[i] = color
             colors[10] = color
         for i in range(12):
             self.context.pixels[i] = colors[i]
