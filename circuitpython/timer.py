@@ -24,7 +24,7 @@ class Timer(Layer):
         self.alt_keys = (
              450,  750, 5400,
             2400, 3000, 3600,
-              10,   20,   30
+              10,   20,  1800
         )
         self.help = "1-4-15 2-5-20 3-10-25"
         text_group = displayio.Group()
