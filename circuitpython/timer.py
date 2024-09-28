@@ -8,10 +8,24 @@ from layer import Layer
 class Timer(Layer):
     WHITE = (255, 255, 255)
     BLACK = (0, 0, 0)
+
     def __init__(self, context):
         Layer.__init__(self, context, (40, 20, 0))
         self.red = (60, 0, 0)
         self.green = (0, 40, 0)
+        self.blue = (0, 0, 60)
+        self.cyan = (0, 30, 40)
+        self.keys = (
+            900, 1200, 1500,
+            240,  300,  600,
+             60,  120,  180
+        )
+        self.alt_keys = (
+             450,  750, 5400,
+            2400, 3000, 3600,
+              10,   20,  1800
+        )
+        self.help = "1-4-15 2-5-20 3-10-25"
         text_group = displayio.Group()
         font = terminalio.FONT
         big_label = label.Label(
@@ -33,49 +47,42 @@ class Timer(Layer):
         self.text_group = text_group
         self.running = False
         self.remaining_millis = 25*60*1000
+        self.alarm_repeat = 60
         self.last_remaining = self.remaining_millis
         self.last_tick = supervisor.ticks_ms()
-        self.mute = False
 
     def activate(self):
-        self.text_group[1].text = "  3:00  12:30  25:00"
+        self.text_group[1].text = self.help
         self.text_group[2].text = " MUSIC  TIMER   LOCK"
         board.DISPLAY.root_group = self.text_group
 
     def keyEvent(self, key_event):
         if key_event.pressed:
             macropad = self.context.macropad
-            if not self.running:
-                if key_event.key_number == 0:
-                    self.remaining_millis = 5*60*1000
-                if key_event.key_number == 1:
-                    self.remaining_millis = 10*60*1000
-                if key_event.key_number == 2:
-                    self.remaining_millis = 50*60*1000
-                if key_event.key_number == 3:
-                    self.remaining_millis = 4*60*1000
-                if key_event.key_number == 4:
-                    self.remaining_millis = 15*60*1000
-                if key_event.key_number == 5:
-                    self.remaining_millis = 10*1000
-                if key_event.key_number == 6:
-                    self.remaining_millis = 3*60*1000
-                if key_event.key_number == 7:
-                    self.remaining_millis = (12*60+30)*1000
-                if key_event.key_number == 8:
-                    self.remaining_millis = 25*60*1000
-            else:
-                if key_event.key_number == 5:
-                    self.mute = not self.mute
-            if key_event.key_number == 9:
+            key_number = key_event.key_number
+            if key_number < len(self.keys):
+                seconds = self.keys[key_number]
+                if self.running:
+                    if self.alarm_repeat == seconds:
+                        self.alarm_repeat = self.alt_keys[key_number]
+                    else:
+                        self.alarm_repeat = seconds
+                    print("alarm repeat", self.alarm_repeat)
+                else:
+                    millis = seconds * 1000
+                    if self.remaining_millis == millis:
+                        self.remaining_millis = self.alt_keys[key_number] * 1000
+                    else:
+                        self.remaining_millis = millis
+            elif key_event.key_number == 9:
                 macropad.consumer_control.send(
                     macropad.ConsumerControlCode.PLAY_PAUSE
                 )
-            if key_event.key_number == 10:
+            elif key_event.key_number == 10:
                 self.running = not self.running
                 if not self.running:
-                    self.mute = False
-            if key_event.key_number == 11:
+                    self.alarm_repeat = 60
+            elif key_event.key_number == 11:
                 macropad.keyboard.press(macropad.Keycode.WINDOWS, macropad.Keycode.L)
                 macropad.keyboard.release_all()
 
@@ -88,21 +95,17 @@ class Timer(Layer):
     def rotated(self, delta):
         macropad = self.context.macropad
         while(delta > 0):
-            macropad.consumer_control.send(
-                macropad.ConsumerControlCode.VOLUME_INCREMENT
-            )
-            macropad.consumer_control.send(
-                macropad.ConsumerControlCode.VOLUME_INCREMENT
-            )
+            for i in range(3):
+                macropad.consumer_control.send(
+                    macropad.ConsumerControlCode.VOLUME_INCREMENT
+                )
             delta -= 1
 
         while(delta < 0):
-            macropad.consumer_control.send(
-                macropad.ConsumerControlCode.VOLUME_DECREMENT
-            )
-            macropad.consumer_control.send(
-                macropad.ConsumerControlCode.VOLUME_DECREMENT
-            )
+            for i in range(3):
+                macropad.consumer_control.send(
+                    macropad.ConsumerControlCode.VOLUME_DECREMENT
+                )
             delta += 1
 
     def display(self):
@@ -122,19 +125,21 @@ class Timer(Layer):
                 seconds = 0
                 minutes += 1
         text_group[0].text = "%s%2d:%02d" % (prefix, minutes, seconds)
-        self.context.pixels.fill(self.color)
+        colors = [self.color] * 12
         if self.running:
             color = self.green
             if self.remaining_millis < 500:
                 color = self.red
             for i in range(9):
-                self.context.pixels[i] = color
-            self.context.pixels[10] = color
-            if self.mute:
-                color2 = self.color
-                if color == self.red:
-                    color2 = self.green
-                self.context.pixels[5] = color2
+                if self.alarm_repeat == self.keys[i]:
+                    colors[i] = self.blue
+                elif self.alarm_repeat == self.alt_keys[i]:
+                    colors[i] = self.cyan
+                else:
+                    colors[i] = color
+            colors[10] = color
+        for i in range(12):
+            self.context.pixels[i] = colors[i]
 
     def seconds(self):
         return (self.remaining_millis) // 1000
@@ -145,18 +150,17 @@ class Timer(Layer):
         if self.running:
             old_seconds = self.seconds()
             delta = ms - self.last_tick
+            if delta < 0:
+                delta = 0
             self.remaining_millis -= delta
             seconds = self.seconds()
             if seconds != old_seconds:
                 result = True # ask for display refresh
             # beep at 0, -60, -120, etc seconds for 3 x 100 ms with 100 ms break
             if seconds <= 0:
-                if (-seconds % 60 == 0):
+                if (-seconds % self.alarm_repeat == 0):
                     slice = (-self.remaining_millis % 1000) // 100
                     tone = slice in (0, 2, 4)
-            # beep every 15 minutes if muted
-            if (self.mute and -seconds % 900 != 0):
-                tone = False
         if tone:
             self.context.macropad.start_tone(2000)
         else:
