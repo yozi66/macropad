@@ -11,7 +11,6 @@ class Timer(Layer):
 
     def __init__(self, context):
         Layer.__init__(self, context, (40, 20, 0))
-        self.debug = False
         self.red = (60, 0, 0)
         self.green = (0, 40, 0)
         self.blue = (0, 0, 60)
@@ -48,8 +47,6 @@ class Timer(Layer):
         self.text_group = text_group
         self.running = False
         self.remaining_millis = 25*60*1000
-        if self.debug:
-            self.remaining_millis = 10*1000
         self.alarm_repeat = 60
         self.last_remaining = self.remaining_millis
         self.last_tick = supervisor.ticks_ms()
@@ -153,6 +150,8 @@ class Timer(Layer):
         if self.running:
             old_seconds = self.seconds()
             delta = ms - self.last_tick
+            if delta < 0:
+                delta = 0
             self.remaining_millis -= delta
             seconds = self.seconds()
             if seconds != old_seconds:
