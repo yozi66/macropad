@@ -18,8 +18,16 @@ void receiveEvent(int howMany) {
   while (Wire.available() > 0) { // loop through all but the last
     char c = Wire.read(); // receive byte as a character
     switch(c) {
+      case '0':
+        Keyboard.press(HID_KEYBOARD_GRAVE_ACCENT_AND_TILDE); // zero in Hungarian layout
+        Keyboard.releaseAll();
+        break;
       case 'D':
         Consumer.write(MEDIA_VOLUME_DOWN);
+        break;
+      case 'E':
+        Keyboard.press(HID_KEYBOARD_ENTER);
+        Keyboard.releaseAll();
         break;
       case 'L':
         Keyboard.press(KEY_LEFT_GUI); // Windows key (Left GUI key)

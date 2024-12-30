@@ -1,5 +1,6 @@
 import supervisor
 from adafruit_macropad import MacroPad
+from bridge import Bridge
 from layer   import Layer
 from context import Context
 from timer   import Timer
@@ -7,7 +8,8 @@ from numpad  import Numpad
 from off     import Off
 
 macropad = MacroPad()
-context = Context(macropad)
+bridge = Bridge()
+context = Context(macropad, bridge)
 timer = Timer(context)
 numpad = Numpad(context)
 context.layers = [

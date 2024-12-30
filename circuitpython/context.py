@@ -1,8 +1,9 @@
 from layer import Layer
 
 class Context:
-    def __init__(self, macropad):
+    def __init__(self, macropad, bridge):
         self.macropad = macropad
+        self.bridge = bridge
         self.text_lines = macropad.display_text()
         self.pixels = macropad.pixels
         self.brite = [0.0, 0.1, 0.2, 0.5, 1.0]

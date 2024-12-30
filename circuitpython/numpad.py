@@ -23,29 +23,29 @@ class Numpad(Layer):
         macropad = self.context.macropad
         if key_event.pressed:
             if key_event.key_number == 0:
-                macropad.keyboard.send(macropad.Keycode.SEVEN)
+                self.context.bridge.write("7")
             if key_event.key_number == 1:
-                macropad.keyboard.send(macropad.Keycode.EIGHT)
+                self.context.bridge.write("8")
             if key_event.key_number == 2:
-               macropad.keyboard.send(macropad.Keycode.NINE)
+                self.context.bridge.write("9")
             if key_event.key_number == 3:
-                macropad.keyboard.send(macropad.Keycode.FOUR)
+                self.context.bridge.write("4")
             if key_event.key_number == 4:
-                macropad.keyboard.send(macropad.Keycode.FIVE)
+                self.context.bridge.write("5")
             if key_event.key_number == 5:
-                macropad.keyboard.send(macropad.Keycode.SIX)
+                self.context.bridge.write("6")
             if key_event.key_number == 6:
-                macropad.keyboard.send(macropad.Keycode.ONE)
+                self.context.bridge.write("1")
             if key_event.key_number == 7:
-                macropad.keyboard.send(macropad.Keycode.TWO)
+                self.context.bridge.write("2")
             if key_event.key_number == 8:
-                macropad.keyboard.send(macropad.Keycode.THREE)
+                self.context.bridge.write("3")
             if key_event.key_number == 9:
-                macropad.keyboard.send(macropad.Keycode.GRAVE_ACCENT) # ZERO in HU keyboard
+                self.context.bridge.write("0")
             if key_event.key_number == 10:
-                macropad.keyboard.send(macropad.Keycode.ENTER)
+                self.context.bridge.write("E")
             if key_event.key_number == 11:
-                macropad.keyboard.send(macropad.Keycode.COMMA)
+                self.context.bridge.write(",")
                 # macropad.keyboard.send(macropad.Keycode.PERIOD)
 
     def name(self):
