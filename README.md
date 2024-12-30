@@ -11,11 +11,11 @@ Hardware
 * [PCB](promicro-hw/promicro-panel.png)
 
 
-Software
-========
+Software folders
+================
 
-* [CircuitPython](circitpython) code - running on the Macropad
-* [Arduino](i2c_keyboard_bridge) code - running on Pro Micro
+* circitpython - running on the Macropad
+* i2c_keyboard_bridge - running on Pro Micro
 
 
 Resources
