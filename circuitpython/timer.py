@@ -3,6 +3,7 @@ import displayio
 import supervisor
 import terminalio
 from adafruit_display_text import bitmap_label as label
+from bridge import Bridge
 from layer import Layer
 
 class Timer(Layer):
@@ -11,6 +12,7 @@ class Timer(Layer):
 
     def __init__(self, context):
         Layer.__init__(self, context, (40, 20, 0))
+        self.bridge = Bridge()
         self.red = (60, 0, 0)
         self.green = (0, 40, 0)
         self.blue = (0, 0, 60)
@@ -75,16 +77,13 @@ class Timer(Layer):
                     else:
                         self.remaining_millis = millis
             elif key_event.key_number == 9:
-                macropad.consumer_control.send(
-                    macropad.ConsumerControlCode.PLAY_PAUSE
-                )
+                self.bridge.write("P")
             elif key_event.key_number == 10:
                 self.running = not self.running
                 if not self.running:
                     self.alarm_repeat = 60
             elif key_event.key_number == 11:
-                macropad.keyboard.press(macropad.Keycode.WINDOWS, macropad.Keycode.L)
-                macropad.keyboard.release_all()
+                self.bridge.write("L")
 
     def name(self):
         return " TIMER "
@@ -95,17 +94,11 @@ class Timer(Layer):
     def rotated(self, delta):
         macropad = self.context.macropad
         while(delta > 0):
-            for i in range(3):
-                macropad.consumer_control.send(
-                    macropad.ConsumerControlCode.VOLUME_INCREMENT
-                )
+            self.bridge.write("UUU")
             delta -= 1
 
         while(delta < 0):
-            for i in range(3):
-                macropad.consumer_control.send(
-                    macropad.ConsumerControlCode.VOLUME_DECREMENT
-                )
+            self.bridge.write("DDD")
             delta += 1
 
     def display(self):
