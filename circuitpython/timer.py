@@ -50,6 +50,8 @@ class Timer(Layer):
         self.alarm_repeat = 60
         self.last_remaining = self.remaining_millis
         self.last_tick = supervisor.ticks_ms()
+        self.last_activity = self.last_tick
+        self.timeout_ms = 15*60*1000
 
     def activate(self):
         self.text_group[1].text = self.help
@@ -58,6 +60,7 @@ class Timer(Layer):
 
     def keyEvent(self, key_event):
         if key_event.pressed:
+            self.last_activity = self.last_tick
             macropad = self.context.macropad
             key_number = key_event.key_number
             if key_number < len(self.keys):
@@ -139,6 +142,7 @@ class Timer(Layer):
         result = False
         tone = False
         if self.running:
+            self.last_activity = ms
             old_seconds = self.seconds()
             delta = ms - self.last_tick
             if delta < 0:
@@ -163,4 +167,11 @@ class Timer(Layer):
         self.last_remaining = self.remaining_millis
 
         self.last_tick = ms
+        if not result:
+            self.screensaver()
         return result
+
+    def  screensaver(self):
+        if self.last_tick > self.last_activity + self.timeout_ms:
+            self.context.macropad.display_sleep = True
+
